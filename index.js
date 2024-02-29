@@ -2,7 +2,6 @@ import express, { json } from 'express';
 import logger from 'morgan';
 import helmet from 'helmet';
 import { createServer } from 'http';
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -14,21 +13,26 @@ const app = express();
 app.use(json());
 app.use(cors());
 app.use(helmet());
-app.use(cookieParser());
 app.use(logger("dev"));
 app.use('/api', router);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found')
-    err.status == 404
-    next(err)
+    err.status = 404;
+    next(err);
 });
 
 app.use((err, req, res, next) => {
-    const mode = process.env.NODE_ENV === 'development' ? err : {}
-    return res.status(err.status || 500).json({
-        message: mode.message,
-        error: err
+    const error = process.env.NODE_ENV === 'development' ? {
+        status: err.status || 500,
+        name: err.name || 'Internal Server Error',
+        message: err.message || 'Error! An error occurred. Please try again later',
+        ...err
+    } : {}
+    return res.status(error.status).json({
+        message: error.message,
+        errorDev: error,
+        errorProduct: err,
     });
 });
 

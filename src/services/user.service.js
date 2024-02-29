@@ -1,5 +1,4 @@
-
-
+import User from "../models/user.model.js";
 
 // Dữ liệu người dùng mới
 const modifiedUserData = {
@@ -19,7 +18,7 @@ const modifiedUserData = {
 
 class UserService {
     async getUserByEmail(email) {
-        const user = await _User.find(email);
+        const user = await User.findOne({ email });
         return user;
     }
 

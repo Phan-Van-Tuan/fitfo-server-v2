@@ -2,29 +2,51 @@ import AuthService from '../services/auth.service.js';
 import UserService from '../services/user.service.js';
 
 class AuthController {
-    async register(req, res) {
-        const { email } = req.body;
-        const lowercaseEmail = email.toLowerCase();
-        const user = await UserService.register(lowercaseEmail);
-        res.status(201).json({ user });
+    async register(req, res, next) {
+        try {
+            const { firstName, lastName, userNane, email, password } = req.body;
+            const lowercaseEmail = email.toLowerCase();
+            const user = await UserService.getUserByEmail(lowercaseEmail);
+            if (user) {
+                return next({ status: 400, name: 'Bad Request', message: 'Email is exist' });
+            }
+            const otpCode = await AuthService.generateOTP(email);
+            const result = await AuthService.sendEmail(email, otpCode);
+            // const user = await AuthService.register(firstName, lastName, userNane, email, password);
+            return res.status(201).json({ user });
+        } catch (error) {
+            next(error);
+        }
     }
 
-    async login(req, res) {
-        const { email, password } = req.body;
-        const lowercaseEmail = email.toLowerCase();
-        const data = await UserService.login(lowercaseEmail, password);
-        res.status(200).json(data);
+    async login(req, res, next) {
+        try {
+            const { email, password } = req.body;
+            const lowercaseEmail = email.toLowerCase();
+            const data = await AuthService.login(lowercaseEmail, password);
+            return res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
     }
 
-    async refreshToken(req, res) {
-        const { refreshToken } = req.body;
-        const data = await UserService.refreshToken(refreshToken);
-        res.status(200).json(data);
+    async refreshToken(req, res, next) {
+        try {
+            const { refreshToken } = req.body;
+            const data = await AuthService.refreshToken(refreshToken);
+            return res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
     }
 
-    async logout(req, res) {
-        const result = await UserService.logout(req.data.userId);
-        res.json(result);
+    async logout(req, res, next) {
+        try {
+            const result = await AuthService.logout(req.data.userId);
+            return res.json(result);
+        } catch (error) {
+            next(error);
+        }
     }
 
     async sendOTP(req, res) {
@@ -45,15 +67,18 @@ class AuthController {
     }
 
     async resetPassword(req, res) {
-        const { refreshToken } = req.body;
-        const data = await UserService.refreshToken(refreshToken);
+        const { email, oldPassword, password } = req.body;
+        const data = await AuthService.refreshToken(refreshToken);
         res.status(200).json(data);
     }
 
-    // async test(req, res) {
-    //     const isVerified = await AuthService.sendEmail("tuank17a2yt3123@gmail.com", "đây là otp của thắng béo: 473275");
-    //     return res.status(200).json({ isVerified });
-    // }
+    async forgotPassword(req, res) {
+        const { email, password } = req.body;
+        const data = await AuthService.refreshToken(refreshToken);
+        res.status(200).json(data);
+    }
+
+
 }
 
 export default new AuthController();

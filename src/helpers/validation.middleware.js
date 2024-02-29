@@ -9,7 +9,7 @@ const registerValidationMiddleware = (req, res, next) => {
     password: Joi.string().min(8).max(64)
       .custom((value, helpers) => {
         // Kiểm tra mật khẩu không trùng với các mật khẩu đã biết 
-        const blacklist = ["password", "123456", "abc123"];
+        const blacklist = ["password", "123456", "abc123", "<scrip>"];
         if (blacklist.includes(value.toLowerCase())) {
           return helpers.error("any.invalid");
         } return value;
@@ -23,10 +23,18 @@ const registerValidationMiddleware = (req, res, next) => {
   next();
 };
 
-const loginValidationMiddleware = (req, res, next) => {
+const emailAndPasswordValidationMiddleware = (req, res, next) => {
   const schema = Joi.object({
     email: Joi.string().email().lowercase().required(),
-    password: Joi.string().min(8).max(64).required(),
+    password: Joi.string().min(8).max(64)
+      .custom((value, helpers) => {
+        // Kiểm tra mật khẩu không trùng với các mật khẩu đã biết 
+        const blacklist = ["password", "123456", "abc123", "<scrip>"];
+        if (blacklist.includes(value.toLowerCase())) {
+          return helpers.error("any.invalid");
+        } return value;
+      })
+      .required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -39,5 +47,5 @@ const loginValidationMiddleware = (req, res, next) => {
 
 export {
   registerValidationMiddleware,
-  loginValidationMiddleware,
+  emailAndPasswordValidationMiddleware,
 };

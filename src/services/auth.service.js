@@ -1,6 +1,6 @@
-import _OTP from '../models/otp.model.js';
-import _User from '../models/user.model.js';
-import _Token from '../models/token.model.js';
+import OTP from '../models/otp.model.js';
+import User from '../models/user.model.js';
+import Token from '../models/token.model.js';
 import { hashCode, compareCode } from '../helpers/encryption.function.js';
 import {
     generateAccessToken,
@@ -10,20 +10,73 @@ import {
 import nodemailer from 'nodemailer';
 import html from '../helpers/mail.template.js';
 
+import redis from 'redis';
+const client = redis.createClient();
+
+// Hàm thêm dữ liệu và đặt hẹn giờ
+function addUserDataWaitRegister(token, data, ttl) {
+    // Lưu dữ liệu vào Redis với key là token và giá trị là data
+    client.setex(token, ttl, data);
+}
+
+// Hàm kiểm tra sự trùng lặp của cả token và dữ liệu
+function getUserDataWaitRegister(token, data, callback) {
+    // Lấy dữ liệu từ Redis với key là token
+    client.get(token, (error, storedData) => {
+        if (error) {
+            // Xử lý lỗi nếu có
+            console.error('Error getting data from Redis:', error);
+            callback(false);
+        } else {
+            // Kiểm tra sự trùng lặp của cả token và dữ liệu
+            if (storedData === data) {
+                // Nếu giống nhau, xóa dữ liệu từ Redis và trả về true
+                client.del(token);
+                callback(true);
+            } else {
+                // Nếu không giống nhau, trả về false
+                callback(false);
+            }
+        }
+    });
+}
+
 class AuthService {
+
+    generateOTP() {
+        const otpCode = Math.floor(100000 + Math.random() * 900000);
+        return otpCode
+    }
+
+    // storeOTP(otpCode, data) {
+    //     if (userDataWaitRegister.hasOwnProperty(otpCode)) {
+    //         return false
+    //     }
+    //     userDataWaitRegister[otpCode] = data;
     
+    //     setTimeout(() => {
+    //         delete userDataWaitRegister[otpCode];
+    //     }, 30 * 1000);
+    //     return true
+    // }
+
+    // async verifyOTP(email, otpCode) {
+    //     return otp !== null;
+    // }
+
     async register(firstName, lastName, email, password) {
-        const isExist = await _User.find(email);
+        const lowercaseEmail = email.toLowerCase();
+        const isExist = await User.find(lowercaseEmail);
         if (isExist) {
             throw { status: 400, message: 'Email is exist' }
         }
         const hashPassword = await hashCode(password);
-        const user = new _User({ firstName, lastName, email, password: hashPassword });
+        // const user = new _User({ firstName, lastName, email: lowercaseEmail, password: hashPassword });
         return user;
     }
 
     async login(email, password) {
-        const user = await _User.findOne({ email: email });
+        const user = await User.findOne({ email: email });
         if (!user) {
             throw { status: 400, message: 'Email is not already' }
         }
@@ -36,16 +89,16 @@ class AuthService {
         }
         const accessToken = generateAccessToken(data);
         const refreshToken = generateRefreshToken(data);
-        const token = await _Token.findOne({ userId: user._id });
+        const token = await Token.findOne({ userId: user._id });
         if (token) {
             token.token = refreshToken
             token.save();
         } else {
-            const newToken = new _Token({ userId: user._id, token: refreshToken });
+            const newToken = new Token({ userId: user._id, token: refreshToken });
             newToken.save();
         }
         return ({
-            accessToken: `Bearer ${accessToken}`,
+            accessToken: accessToken,
             refreshToken: refreshToken
         });
     }
@@ -58,18 +111,18 @@ class AuthService {
     async refreshToken(refreshToken) {
         const data = decodeRefreshToken(refreshToken);
         if (!data) {
-            throw { status: 403, message: 'Token is wrong!' }
+            throw { status: 403, name: 'Forbidden', message: 'Token is wrong!' }
         }
-        const token = await _Token.findOne({ userId: data.payload.userId });
+        const token = await Token.findOne({ userId: data.data.userId });
         if (!token) {
-            throw { status: 403, message: 'Do not logged in yet!' }
+            throw { status: 403, name: 'Forbidden', message: 'Do not logged in yet!' }
         }
-        const newAccessToken = generateAccessToken(data.payload);
-        const newRefreshToken = generateRefreshToken(data.payload);
+        const newAccessToken = generateAccessToken(data.data);
+        const newRefreshToken = generateRefreshToken(data.data);
         token.token = newRefreshToken;
         token.save();
         return ({
-            accessToken: `Bearer ${newAccessToken}`,
+            accessToken: newAccessToken,
             refreshToken: newRefreshToken
         });
     }
@@ -93,22 +146,6 @@ class AuthService {
             html: html(otpCode), // html body
         });
         return info;
-    }
-
-    async generateOTP(email) {
-        // Tạo mã OTP ngẫu nhiên (đoạn này có thể sử dụng thư viện như 'crypto' để tạo mã ngẫu nhiên an toàn hơn)
-        const otpCode = Math.floor(100000 + Math.random() * 900000);
-        const otp = new _OTP({
-            email,
-            otpCode,
-        });
-        await otp.save();
-        return otpCode
-    }
-
-    async verifyOTP(email, otpCode) {
-        const otp = await _OTP.findOneAndDelete({ email, otpCode });
-        return otp !== null;
     }
 }
 

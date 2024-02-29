@@ -3,7 +3,7 @@ const { sign, verify } = pkg;
 
 const generateAccessToken = (data) => {
     return sign({
-        payload: data,
+        data: data,
     },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXPIRE }
@@ -16,7 +16,7 @@ const decodeAccessToken = (token) => {
 
 const generateRefreshToken = (data) => {
     return sign({
-        payload: data,
+        data: data,
     },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRE }
