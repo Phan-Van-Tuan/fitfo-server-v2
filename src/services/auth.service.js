@@ -10,37 +10,6 @@ import {
 import nodemailer from 'nodemailer';
 import html from '../helpers/mail.template.js';
 
-import redis from 'redis';
-const client = redis.createClient();
-
-// Hàm thêm dữ liệu và đặt hẹn giờ
-function addUserDataWaitRegister(token, data, ttl) {
-    // Lưu dữ liệu vào Redis với key là token và giá trị là data
-    client.setex(token, ttl, data);
-}
-
-// Hàm kiểm tra sự trùng lặp của cả token và dữ liệu
-function getUserDataWaitRegister(token, data, callback) {
-    // Lấy dữ liệu từ Redis với key là token
-    client.get(token, (error, storedData) => {
-        if (error) {
-            // Xử lý lỗi nếu có
-            console.error('Error getting data from Redis:', error);
-            callback(false);
-        } else {
-            // Kiểm tra sự trùng lặp của cả token và dữ liệu
-            if (storedData === data) {
-                // Nếu giống nhau, xóa dữ liệu từ Redis và trả về true
-                client.del(token);
-                callback(true);
-            } else {
-                // Nếu không giống nhau, trả về false
-                callback(false);
-            }
-        }
-    });
-}
-
 class AuthService {
 
     generateOTP() {
@@ -66,6 +35,7 @@ class AuthService {
 
     async register(firstName, lastName, email, password) {
         const lowercaseEmail = email.toLowerCase();
+        
         const isExist = await User.find(lowercaseEmail);
         if (isExist) {
             throw { status: 400, message: 'Email is exist' }
