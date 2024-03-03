@@ -1,4 +1,3 @@
-import OTP from '../models/otp.model.js';
 import User from '../models/user.model.js';
 import Token from '../models/token.model.js';
 import { hashCode, compareCode } from '../helpers/encryption.function.js';
@@ -6,7 +5,14 @@ import {
     generateAccessToken,
     generateRefreshToken,
     decodeRefreshToken,
+    generateToken,
+    decodeToken,
 } from '../helpers/jwt.function.js';
+import {
+    setValue,
+    getValue,
+    delValue
+} from '../config/connectionRedis.js'
 import nodemailer from 'nodemailer';
 import html from '../helpers/mail.template.js';
 
@@ -17,32 +23,62 @@ class AuthService {
         return otpCode
     }
 
-    // storeOTP(otpCode, data) {
-    //     if (userDataWaitRegister.hasOwnProperty(otpCode)) {
-    //         return false
-    //     }
-    //     userDataWaitRegister[otpCode] = data;
-    
-    //     setTimeout(() => {
-    //         delete userDataWaitRegister[otpCode];
-    //     }, 30 * 1000);
-    //     return true
-    // }
-
-    // async verifyOTP(email, otpCode) {
-    //     return otp !== null;
-    // }
-
-    async register(firstName, lastName, email, password) {
-        const lowercaseEmail = email.toLowerCase();
-        
-        const isExist = await User.find(lowercaseEmail);
-        if (isExist) {
-            throw { status: 400, message: 'Email is exist' }
+    async storeData(email, jsonData) {
+        try {
+            const lowercaseEmail = email.toLowerCase();
+            const stringData = JSON.stringify(jsonData);
+            await setValue(`data[${lowercaseEmail}]`, stringData, 60 * 10);
+            return email;
+        } catch (error) {
+            return error;
         }
-        const hashPassword = await hashCode(password);
-        // const user = new _User({ firstName, lastName, email: lowercaseEmail, password: hashPassword });
-        return user;
+    }
+
+    async storeOTP(email) {
+        try {
+            const lowercaseEmail = email.toLowerCase();
+            let otpCode = this.generateOTP();
+            await setValue(`${lowercaseEmail}`, otpCode, 60 * 10);
+            return otpCode;
+        } catch (error) {
+            return error;
+        }
+    }
+
+    async verifyOTP(email, otpCode) {
+        try {
+            const lowercaseEmail = email.toLowerCase();
+            const isExist = await getValue(`${lowercaseEmail}`);
+            if (!isExist) {
+                throw new Error('Email is not exist');
+            } else if (isExist !== otpCode) {
+                throw new Error('Wrong otpCode');
+            } else {
+                const stringData = await getValue(`data[${lowercaseEmail}]`);
+                if (!stringData) {
+                    throw new Error('Data does not exist');
+                }
+                const jsonData = JSON.parse(stringData);
+                console.log(jsonData);
+                return jsonData;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+    async register(data) {
+        try {
+            const { firstName, lastName, userName, email, password } = data;
+            const lowercaseEmail = email.toLowerCase();
+            const user = new User({ firstName, lastName, userName, email: lowercaseEmail, password });
+            return user;
+            user.save();
+            return user;
+        } catch (error) {
+            return error;
+        }
     }
 
     async login(email, password) {

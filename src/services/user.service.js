@@ -18,7 +18,8 @@ const modifiedUserData = {
 
 class UserService {
     async getUserByEmail(email) {
-        const user = await User.findOne({ email });
+        const lowercaseEmail = email.toLowerCase();
+        const user = await User.findOne({ email: lowercaseEmail });
         return user;
     }
 

@@ -4,16 +4,34 @@ import UserService from '../services/user.service.js';
 class AuthController {
     async register(req, res, next) {
         try {
-            const { firstName, lastName, userNane, email, password } = req.body;
-            const lowercaseEmail = email.toLowerCase();
-            const user = await UserService.getUserByEmail(lowercaseEmail);
+            const { email } = req.body;
+            const user = await UserService.getUserByEmail(email);
             if (user) {
                 return next({ status: 400, name: 'Bad Request', message: 'Email is exist' });
             }
-            const otpCode = await AuthService.generateOTP(email);
+            await AuthService.storeData(email, req.body);
+            const otpCode = await AuthService.storeOTP(email);
+            if (!otpCode) {
+                return next({ status: 400, name: 'Bad Request', message: 'OTP is not created' });
+            }
+            return res.status(201).json({ otpCode });
             const result = await AuthService.sendEmail(email, otpCode);
-            // const user = await AuthService.register(firstName, lastName, userNane, email, password);
             return res.status(201).json({ user });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async verifyOTP(req, res, next) {
+        try {
+            const { email, otpCode } = req.body;
+            const user = await UserService.getUserByEmail(email);
+            if (user) {
+                return next({ status: 400, name: 'Bad Request', message: 'Email is exist' });
+            }
+            const data = await AuthService.verifyOTP(email, otpCode);
+            const newUser = await AuthService.register(data)
+            return res.status(200).json({ newUser });
         } catch (error) {
             next(error);
         }
@@ -47,23 +65,6 @@ class AuthController {
         } catch (error) {
             next(error);
         }
-    }
-
-    async sendOTP(req, res) {
-        const { firstName, lastName, userName, email, password } = req.body;
-        const user = await UserService.getUserByEmail(email);
-        if (user) {
-            return res.status(400).json({ message: 'Email is exist' });
-        }
-        const otpCode = await AuthService.generateOTP(email);
-        const result = await AuthService.sendEmail(email, otpCode);
-        return res.status(204).json({ result });
-    }
-
-    async verifyOTP(req, res) {
-        const { email, otpCode } = req.body;
-        const isVerified = await AuthService.verifyOTP(email, otpCode);
-        return res.status(200).json({ isVerified });
     }
 
     async resetPassword(req, res) {
