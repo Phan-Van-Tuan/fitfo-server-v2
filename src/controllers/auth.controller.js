@@ -22,6 +22,20 @@ class AuthController {
         }
     }
 
+    async refreshOTP(req, res, next) {
+        try {
+            const { email } = req.body;
+            const otp = await AuthService.getOTP(email);
+            const otpCode = await AuthService.storeOTP(email);
+            if (!otpCode) {
+                return next({ status: 400, name: 'Bad Request', message: 'OTP is not created' });
+            }
+            return res.status(201).json({ otpCode });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async verifyOTP(req, res, next) {
         try {
             const { email, otpCode } = req.body;
@@ -29,8 +43,12 @@ class AuthController {
             if (user) {
                 return next({ status: 400, name: 'Bad Request', message: 'Email is exist' });
             }
-            const data = await AuthService.verifyOTP(email, otpCode);
-            const newUser = await AuthService.register(data)
+            const otp = await AuthService.getOTP(email);
+            if (otp !== otpCode) {
+                return next({ status: 400, name: 'Bad Request', message: 'Email is exist' });
+            }
+            const data = await AuthService.getData(email);
+            const newUser = await AuthService.register(data);
             return res.status(200).json({ newUser });
         } catch (error) {
             next(error);

@@ -30,7 +30,7 @@ class AuthService {
             await setValue(`data[${lowercaseEmail}]`, stringData, 60 * 10);
             return email;
         } catch (error) {
-            return error;
+            throw error;
         }
     }
 
@@ -41,27 +41,34 @@ class AuthService {
             await setValue(`${lowercaseEmail}`, otpCode, 60 * 10);
             return otpCode;
         } catch (error) {
-            return error;
+            throw error;
         }
     }
 
-    async verifyOTP(email, otpCode) {
+    async getOTP(email) {
         try {
             const lowercaseEmail = email.toLowerCase();
-            const isExist = await getValue(`${lowercaseEmail}`);
-            if (!isExist) {
+            const otpCode = await getValue(`${lowercaseEmail}`);
+            if (!otpCode) {
                 throw new Error('Email is not exist');
-            } else if (isExist !== otpCode) {
-                throw new Error('Wrong otpCode');
             } else {
-                const stringData = await getValue(`data[${lowercaseEmail}]`);
-                if (!stringData) {
-                    throw new Error('Data does not exist');
-                }
-                const jsonData = JSON.parse(stringData);
-                console.log(jsonData);
-                return jsonData;
+                return otpCode;
             }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getData(email) {
+        try {
+            const lowercaseEmail = email.toLowerCase();
+            const stringData = await getValue(`data[${lowercaseEmail}]`);
+            if (!stringData) {
+                throw new Error('Data does not exist');
+            }
+            const jsonData = JSON.parse(stringData);
+            console.log(jsonData);
+            return jsonData;
         } catch (error) {
             throw error;
         }
@@ -77,7 +84,7 @@ class AuthService {
             user.save();
             return user;
         } catch (error) {
-            return error;
+            throw error;
         }
     }
 

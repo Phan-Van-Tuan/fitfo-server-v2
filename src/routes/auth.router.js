@@ -10,7 +10,8 @@ import {
 } from '../helpers/validation.middleware.js'
 
 router.post('/register', registerValidationMiddleware, AuthController.register);
-router.post('/verify', AuthController.verifyOTP);
+router.post('/refresh-otp', AuthController.refreshOTP);
+router.post('/verify-otp', AuthController.verifyOTP);
 
 router.post('/login', AuthController.login);
 router.post('/refresh-token', AuthController.refreshToken);
