@@ -18,8 +18,8 @@ const userShema = new Schema(
         },
         gender: {
             type: String,
-            enum: ["male", "female", "other"],
-            default: "",
+            enum: ["male", "female", "other", "default"],
+            default: "default",
         },
         birthday: { type: String, default: "" },
         account: {

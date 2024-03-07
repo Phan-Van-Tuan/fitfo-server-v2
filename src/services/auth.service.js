@@ -34,12 +34,11 @@ class AuthService {
         }
     }
 
-    async storeOTP(email) {
+    async storeOTP(email, otpCode) {
         try {
             const lowercaseEmail = email.toLowerCase();
-            let otpCode = this.generateOTP();
-            await setValue(`${lowercaseEmail}`, otpCode, 60 * 10);
-            return otpCode;
+            const result = await setValue(`${lowercaseEmail}`, otpCode, 60 * 10);
+            return result;
         } catch (error) {
             throw error;
         }
@@ -67,7 +66,6 @@ class AuthService {
                 throw new Error('Data does not exist');
             }
             const jsonData = JSON.parse(stringData);
-            console.log(jsonData);
             return jsonData;
         } catch (error) {
             throw error;
@@ -80,7 +78,6 @@ class AuthService {
             const { firstName, lastName, userName, email, password } = data;
             const lowercaseEmail = email.toLowerCase();
             const user = new User({ firstName, lastName, userName, email: lowercaseEmail, password });
-            return user;
             user.save();
             return user;
         } catch (error) {
