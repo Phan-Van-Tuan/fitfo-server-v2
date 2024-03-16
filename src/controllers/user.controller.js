@@ -5,6 +5,10 @@ class UserController {
         res.json('this is get all users');
     }
 
+    async getProfile(req, res, next) {
+        res.json('this is get user');
+    }
+
     async getAllUsers(req, res) {
         res.json('this is get all users');
     }
