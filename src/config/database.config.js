@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 mongoose.set('strictQuery', true);
 
-async function connectDB() {
+async function connect(uri) {
     try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        await mongoose.connect(uri);
         console.log('👌 connect DB successfully!!');
         console.log('');
         console.log('------------------------');
@@ -12,5 +12,12 @@ async function connectDB() {
         console.error(error);
     }
 }
-export default connectDB;
+
+class DatabaseLoader {
+    static init(uri) {
+        connect(uri);
+    }
+}
+
+export default DatabaseLoader;
 
