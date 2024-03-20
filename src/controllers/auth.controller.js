@@ -12,20 +12,10 @@ function getDeviceInfo(req) {
 
 class AuthController {
     async register(req, res, next) {
-        try {
-            const { email } = req.body;
-            const user = await UserService.getUserByEmail(email);
-            if (user) {
-                return next({ status: 422, name: 'Unprocessable Entity', message: 'Email is already in use' });
-            }
-            await AuthService.storeData(email, req.body);
-            const otpCode = AuthService.generateOTP();
-            await AuthService.storeOTP(email, otpCode);
-            const result = await AuthService.sendEmail(email, otpCode);
-            return res.status(201).json(result);
-        } catch (error) {
-            next(error);
-        }
+        const data = req.body
+        await AuthService.register(data);
+        return res.status(201).json(result);
+
     }
 
     async refreshOTP(req, res, next) {

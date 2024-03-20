@@ -13,10 +13,10 @@ app.use(cors());
 app.use(helmet());
 app.use(logger("dev"));
 
-import MiddlewareLoader from './config/middleware.config.js'
+import MiddlewareLoader from './src/config/middleware.config.js'
 MiddlewareLoader.init(app);
 
-import RoutesLoader from './config/router.config.js';
+import RoutesLoader from './src/config/router.config.js';
 const version = process.env.VERSION || "V2";
 RoutesLoader.init(app, version);
 
