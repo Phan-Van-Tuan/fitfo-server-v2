@@ -8,23 +8,33 @@ client.on('connect', () => {
 await client.connect();
 
 // class Redis {
-function setValue(key, value, ttl) {
-  client.set(key, value, { EX: ttl }, (err) => {
-    return err;
-  })
+async function setValue(key, value, ttl) {
+  try {
+    await client.set(key, value, { EX: ttl });
+    return true; // hoặc trả về bất cứ giá trị nào bạn muốn khi thành công
+  } catch (error) {
+    throw error;
+  }
 }
 
-function getValue(key) {
-  client.get(key, (err) => {
-    return err;
-  })
+async function getValue(key) {
+  try {
+    const data = await client.get(key);
+    return data;
+  } catch (error) {
+    throw error;
+  }
 }
 
-function delValue(key) {
-  client.del(key, (err) => {
-    return err;
-  })
+async function delValue(key) {
+  try {
+    await client.del(key);
+    return true; // hoặc trả về bất cứ giá trị nào bạn muốn khi thành công
+  } catch (error) {
+    throw error;
+  }
 }
+
 
 export {
   setValue,

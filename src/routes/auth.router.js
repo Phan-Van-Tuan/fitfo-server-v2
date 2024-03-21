@@ -1,24 +1,23 @@
 import express from 'express';
 const router = express.Router();
 
-// import AuthController from '../controllers/auth.controller.js';
-// import UserController from '../controllers/user.controller.js';
-// import {
-//     auth,
-//     registerValidationMiddleware,
-//     emailAndPasswordValidationMiddleware
-// } from '../middlewares';
+import AuthController from '../controllers/auth.controller.js';
 
-// router.post('/register', registerValidationMiddleware, AuthController.register);
-// router.post('/refresh-otp', AuthController.refreshOTP);
-// router.post('/verify-otp', AuthController.verifyOTP);
+import {
+    auth,
+    awaitHF
+} from '../middlewares/index.js';
 
-// router.post('/login', AuthController.login);
-// router.post('/refresh-token', AuthController.refreshToken);
-// router.post('/logout', authMiddleware, AuthController.logout);
+router.post('/register', awaitHF(AuthController.register));
+router.post('/generate-otp', awaitHF(AuthController.generateOTP));
 
-// router.post('/reset-password', authMiddleware, emailAndPasswordValidationMiddleware, AuthController.resetPassword);
-// router.post('/forgot-password', emailAndPasswordValidationMiddleware, AuthController.forgotPassword);
+router.post('/login', awaitHF(AuthController.login));
+router.post('/refresh-token', awaitHF(AuthController.refreshToken));
+router.post('/logout', auth(), awaitHF(AuthController.logout));
+
+router.post('/change-password', auth(), awaitHF(AuthController.changePassword));
+router.post('/reset-password', awaitHF(AuthController.resetPassword));
+router.post('/forgot-password', awaitHF(AuthController.forgotPassword));
 
 
 

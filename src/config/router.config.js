@@ -2,9 +2,9 @@ import UserRoute from '../routes/user.router.js';
 import AuthRoute from '../routes/auth.router.js';
 
 class RoutesLoader {
-    static init(app, version) {
-        // app.use(`/api/${version}/auth`, AuthRoute);
-        // app.use(`/api/${version}/user`, UserRoute);
+    static init(app) {
+        app.use(`/api/auth`, AuthRoute);
+        app.use(`/api/user`, UserRoute);
         // app.use(`/api/${version}/movies`, movieRouter);
         // app.use(`/api/${version}/roles`, roleRouter);
         // app.use(`/api/${version}/theaters`, theaterRouter);

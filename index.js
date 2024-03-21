@@ -13,22 +13,21 @@ app.use(cors());
 app.use(helmet());
 app.use(logger("dev"));
 
-import MiddlewareLoader from './src/config/middleware.config.js'
-MiddlewareLoader.init(app);
-
-import RoutesLoader from './src/config/router.config.js';
-const version = process.env.VERSION || "V2";
-RoutesLoader.init(app, version);
-
-import DatabaseLoader from './config/database.config.js';
+import DatabaseLoader from './src/config/database.config.js';
 const uri = process.env.MONGODB_URI;
 DatabaseLoader.init(uri);
+
+import RoutesLoader from './src/config/router.config.js';
+RoutesLoader.init(app);
+
+import CatchLoader from './src/config/catch.config.js'
+CatchLoader.init(app);
 
 var server = createServer(app);
 const PORT = process.env.PORT || 3300;
 
 server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`👌 Server running at http://localhost:${PORT}`);
 });
 
 

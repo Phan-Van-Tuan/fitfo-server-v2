@@ -21,7 +21,7 @@ const userShema = new Schema(
             enum: ["male", "female", "other", "default"],
             default: "default",
         },
-        birthday: { type: String, default: "" },
+        birthday: { type: String, default: "default" },
         account: {
             type: String,
             enum: ["default", "google"],

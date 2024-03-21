@@ -1,15 +1,14 @@
-import { authMiddleware } from './auth.middleware.js';
-import { awaitHandlerFactory } from './awaitHandlerFactory.middleware.js';
-import { errorMiddleware } from './error.middleware.js';
+import auth from './auth.middleware.js';
+import awaitHF  from './awaitHandlerFactory.middleware.js';
 import {
     registerShema,
-    loginSchema
+    loginSchema,
+
 } from './validation.middleware.js'
 
-export {
-    authMiddleware,
-    awaitHandlerFactory,
-    errorMiddleware,
+export default {
+    auth,
+    awaitHF,
     registerShema,
     loginSchema,
 } 
