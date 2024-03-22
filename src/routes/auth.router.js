@@ -3,21 +3,18 @@ const router = express.Router();
 
 import AuthController from '../controllers/auth.controller.js';
 
-import {
-    auth,
-    awaitHF
-} from '../middlewares/index.js';
+import middleware from '../middlewares/index.js';
 
-router.post('/register', awaitHF(AuthController.register));
-router.post('/generate-otp', awaitHF(AuthController.generateOTP));
+router.post('/register', middleware.awaitHF(AuthController.register));
+router.post('/generate-otp', middleware.awaitHF(AuthController.generateOTP));
 
-router.post('/login', awaitHF(AuthController.login));
-router.post('/refresh-token', awaitHF(AuthController.refreshToken));
-router.post('/logout', auth(), awaitHF(AuthController.logout));
+router.post('/login', middleware.awaitHF(AuthController.login));
+router.post('/refresh-token', middleware.awaitHF(AuthController.refreshToken));
+router.post('/logout', middleware.auth(), middleware.awaitHF(AuthController.logout));
 
-router.post('/change-password', auth(), awaitHF(AuthController.changePassword));
-router.post('/reset-password', awaitHF(AuthController.resetPassword));
-router.post('/forgot-password', awaitHF(AuthController.forgotPassword));
+router.post('/change-password', middleware.auth(), middleware.awaitHF(AuthController.changePassword));
+router.post('/reset-password', middleware.awaitHF(AuthController.resetPassword));
+router.post('/forgot-password', middleware.awaitHF(AuthController.forgotPassword));
 
 
 

@@ -2,9 +2,10 @@ import express from 'express';
 const router = express.Router();
 
 import UserController from '../controllers/user.controller.js';
-import auth from '../middlewares/auth.middleware.js';
 
-router.put('/update-profile', UserController.updateProfile);
-router.get('/', UserController.getAllUsers);
+import middleware from '../middlewares/index.js';
+
+router.get('/:id', middleware.auth(), middleware.awaitHF(UserController.getProfile));
+router.put('/update-profile', middleware.auth(), middleware.awaitHF(UserController.updateProfile));
 
 export default router;

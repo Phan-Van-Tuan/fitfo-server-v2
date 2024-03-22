@@ -15,12 +15,6 @@ class CatchLoader {
                     message: err.message || "Something went wrong!!"
                 }
             });
-
-            if (process.env.NODE_ENV === "development") {
-                console.log(`[Exception] ${error}, [Code] ${code}`);
-                console.log(`[Error] ${message}`);
-                console.log(`[Stack] ${stack}`);
-            }
         });
     }
 }

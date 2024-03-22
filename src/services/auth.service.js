@@ -24,13 +24,15 @@ class AuthService {
 
         await setValue(`${email}`, otpCode, 60 * 3); // 3 minutes
 
-        const result = await this.sendEmail(email, otpCode);
+        return otpCode;
 
-        return result;
+        // const result = await this.sendEmail(email, otpCode);
+
+        // return result;
     }
 
     register = async (body) => {
-        this.verifyOTP(body);
+        // this.verifyOTP(body);
         const email = body.email.toLowerCase();
 
         const user = await User.findOne({ email });
@@ -39,7 +41,7 @@ class AuthService {
         const password = await bcrypt.hash(body.password, 5);
 
         const { firstName, lastName, userName } = body;
-        const newUser = new User(firstName, lastName, userName, email, password);
+        const newUser = new User({ firstName, lastName, userName, email, password });
         newUser.save();
 
         return "Registered successfully";
@@ -107,7 +109,7 @@ class AuthService {
 
     logout = async (headers, body) => {
         const refreshToken = await Token.findOneAndDelete({ token: body.refreshToken });
-        if (!refreshToken) { throw new E(401, "error missingtoken") }
+        if (!refreshToken) { throw new E(401, "error missing refreshToken") }
 
         const authHeader = headers['authorization'];
         const bearer = 'Bearer ';
